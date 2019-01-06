@@ -111,7 +111,9 @@ def prepare_model(model, n_out):
     setattr(model, model.last_layer_attr, attr)
 
 
-def train_model(model, loaders, train_on_gpu=False, optimizer='sgd', criterion='crossentropy', lr=0.001, n_epochs=2, print_every=100):
+def train_model(model, loaders, train_on_gpu=False, 
+                optimizer='sgd', criterion='crossentropy',
+                lr=0.001, n_epochs=2, print_every=100):
     """
     Trains and validates a previously prepared model.
 
@@ -282,5 +284,5 @@ if __name__ == "__main__":
                 optimizer='cross_entropy', criterion='adam',
                 lr=0.001, n_epochs=100, print_every=100)
 
-    # Save model
+    # # Save model
     save_model(model)

@@ -1,4 +1,4 @@
-# Descriptions
+# Description
 
 This repository contains a full Image Classifier of Flower Species. It was created for the Pytorch's Facebook Challenge of Udacity.
 
