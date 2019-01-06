@@ -16,10 +16,13 @@ def load_model(filepath):
     checkpoint = torch.load(filepath, map_location='cpu')
     if 'VGG_19' in filepath:
         model = models.vgg19(pretrained=True)
+        model.last_layer_attr = 'classifier'
     elif 'DenseNet_161' in filepath:
         model = models.densenet161(pretrained=True)
+        model.last_layer_attr = 'classifier'
     elif 'ResNet_152' in filepath:
         model = models.resnet152(pretrained=True)
+        model.last_layer_attr = 'fc'
 
     # Freezes parameteres
     for param in model.parameters():
@@ -192,7 +195,7 @@ def predict(image_path, model, cat_to_name, topk=5, gpu=False):
     classes = [model.idx_to_class[i] for i in idxs]
     
     # Print predicted class name
-    print(cat_to_name[classes[0]] + " : " + str(probs[0]))
+    print(cat_to_name[classes[0]] +     " : " + str(probs[0]))
     
     return list(probs), list(classes)
 
@@ -212,15 +215,16 @@ def show_probs(img_path, model, cat_to_name):
     tensor_data = torch.tensor(np_img)
     
     # Prediction
-    probs, classes = predict(img_path, model, 5)
+    probs, classes = predict(img_path, model, cat_to_name, 5)
     names = [cat_to_name[c] for c in classes]
     
     # Plots
-    fig, axs = plt.subplots(2, 1, figsize=(5, 12))
+    fig, axs = plt.subplots(2, 1, figsize=(5, 10))
     axs[0].set_ticks=[]
     axs[0].set_axis_off()
     imshow(tensor_data, ax=axs[0])
     axs[1].barh(list(reversed(names)), list(reversed(probs)))
+    plt.show()
 
 
 if __name__ == "__main__":
@@ -238,11 +242,12 @@ if __name__ == "__main__":
         model = load_model('checkpoint_VGG_19.pth')
     else: # default model
         model = load_model('checkpoint_DenseNet_161.pth') # Best model
-
+    
+    # Load categories names
     cat_to_name = load_cat_to_name('cat_to_name.json')
 
     # Print predictions of 'test.jpg' Image    
-    print(predict('test.jpg', model, cat_to_name,5))
+    print(predict('test.jpg', model, cat_to_name, 5))
 
     # Show results
     show_probs('test.jpg', model, cat_to_name)
