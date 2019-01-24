@@ -68,7 +68,6 @@ def load_cat_to_name(file_path):
     
     return cat_to_name
 
-
 def check_accuracy(model, validation_loader, train_on_gpu=False):
     """
     Check models overall accuracy in validation dataset.
@@ -96,7 +95,6 @@ def check_accuracy(model, validation_loader, train_on_gpu=False):
    # Prints
     print(model.name + ":")
     print(f"Accuracy {correct.sum() / len(correct) * 100:.2f}% ({correct.sum()}/{len(correct)}). ")
-
 
 def process_image(image):
     """ 
@@ -161,7 +159,6 @@ def imshow(image, ax=None):
     
     return ax
 
-
 def predict(image_path, model, cat_to_name, topk=5, gpu=False):
     """
     Predict the class (or classes) of an image using a trained deep learning model.
@@ -199,7 +196,6 @@ def predict(image_path, model, cat_to_name, topk=5, gpu=False):
     
     return list(probs), list(classes)
 
-
 def show_probs(img_path, model, cat_to_name):
     """
     Show image and its probabilities.
@@ -225,7 +221,6 @@ def show_probs(img_path, model, cat_to_name):
     imshow(tensor_data, ax=axs[0])
     axs[1].barh(list(reversed(names)), list(reversed(probs)))
     plt.show()
-
 
 if __name__ == "__main__":
 
