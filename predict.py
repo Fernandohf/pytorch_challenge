@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 
+
 # loads a checkpoint and rebuilds the model
 def load_model(filepath):
     """
@@ -27,10 +28,10 @@ def load_model(filepath):
     # Freezes parameteres
     for param in model.parameters():
         param.requires_grad = False
-    
+
     # Modify Classifier
     try:
-        n_inputs = getattr(model, model.last_layer_attr).in_features # Check if returns a Sequential
+        n_inputs = getattr(model, model.last_layer_attr).in_features  # Check if returns a Sequential
     except AttributeError:
         n_inputs = getattr(model, model.last_layer_attr)[-1].in_features
     attr = getattr(model, model.last_layer_attr)
@@ -38,34 +39,35 @@ def load_model(filepath):
         attr[-1] = nn.Linear(n_inputs, 102)
     else:
         attr = nn.Linear(n_inputs, 102)
-    
+
     # Modifies last layer attributes
     setattr(model, model.last_layer_attr, attr)
 
     # Load other info
     model.load_state_dict(checkpoint['state_dict'])
     model.class_to_idx = checkpoint['class_to_idx']
-    model.idx_to_class = {idx:class_ for class_, idx in model.class_to_idx.items()}
+    model.idx_to_class = {idx: class_ for class_, idx in model.class_to_idx.items()}
     model.name = checkpoint['name']
-    model.optimizer_state  = checkpoint['optimizer_state']
+    model.optimizer_state = checkpoint['optimizer_state']
     model.eval()
-    
+
     return model
+
 
 def load_cat_to_name(file_path):
     """
     Load file to convert categories is names.
 
-    Args: 
+    Args:
         file_path: File directory.
-    
+
     Outputs:
         cat_to_name: dictionary maping classes to names.
     """
     # Load file
     with open(file_path, 'r') as f:
         cat_to_name = json.load(f)
-    
+
     return cat_to_name
 
 
@@ -82,7 +84,7 @@ def check_accuracy(model, validation_loader, train_on_gpu=False):
                 inputs, labels = inputs.cuda(), labels.cuda()
 
             output = model(inputs)
-            _, pred = torch.max(output, 1)    
+            _, pred = torch.max(output, 1)
             # compare predictions to true label
             correct_tensor = pred.eq(labels.data.view_as(pred))
             # Turns result in numpy array
@@ -93,15 +95,15 @@ def check_accuracy(model, validation_loader, train_on_gpu=False):
             correct = np.append(correct,
                                 results)
 
-   # Prints
+    # Prints
     print(model.name + ":")
-    print(f"Accuracy {correct.sum() / len(correct) * 100:.2f}% ({correct.sum()}/{len(correct)}). ")
+    print(f"Accuracy {correct.sum() / len(correct) * 100:.2f}% ({correct.sum()} / {len(correct)}). ")
 
 
 def process_image(image):
-    """ 
+    """
     Scales, crops, and normalizes a PIL image for a PyTorch model, returns an Numpy array.
-    
+
     Args:
         image: PIL image.
 
@@ -110,7 +112,7 @@ def process_image(image):
     # Resize
     size = (255, 255)
     image.thumbnail(size, Image.ANTIALIAS)
-    
+
     # Crop center
     new_size = 224
     width, height = image.size  # Get dimensions
@@ -119,46 +121,47 @@ def process_image(image):
     right = (width + new_size) / 2
     bottom = (height + new_size) / 2
     image = image.crop((left, top, right, bottom))
-    
+
     # Convert RGB
     image = image.convert("RGB")
-    
+
     # Normalize
     np_image = np.array(image) / 255.
     std = np.array([.229, .224, .225])
     mean = np.array([.485, .456, .406])
     img = (np_image - mean) / std # un-normalize
-    
+
     # Transpose
     img = img.transpose((2, 0, 1))
 
     return img
 
+
 def imshow(image, ax=None):
     """
     Imshow for Tensor. Removes all processing from image.
-    
+
     Args:
         image: PyTorch Tensor.
         ax= matplotlib axes.
     """
     if ax is None:
         fig, ax = plt.subplots()
-    
+
     # PyTorch tensors assume the color channel is the first dimension
     # but matplotlib assumes is the third dimension
     image = image.numpy().transpose((1, 2, 0))
-    
+
     # Undo preprocessing
     mean = np.array([0.485, 0.456, 0.406])
     std = np.array([0.229, 0.224, 0.225])
     image = std * image + mean
-    
+
     # Image needs to be clipped between 0 and 1 or it looks like noise when displayed
     image = np.clip(image, 0, 1)
-    
+
     ax.imshow(image)
-    
+
     return ax
 
 
@@ -176,7 +179,7 @@ def predict(image_path, model, cat_to_name, topk=5, gpu=False):
     img = Image.open(image_path)
     np_img = process_image(img)
     tensor_img = torch.tensor(np_img).unsqueeze(0).double()
-    
+
     # Predictions
     model.eval()    # garantes prediction mode
     model.double()  # Some windows specific errors
@@ -187,16 +190,16 @@ def predict(image_path, model, cat_to_name, topk=5, gpu=False):
             tensor_img.cuda()
         model_output = model(tensor_img)
         out = nn.functional.softmax(model_output, dim=1)
-    
+
     # Results
     probs, idxs = out.topk(topk)
     idxs = idxs.numpy().squeeze(0)      # idxs as numpy array
     probs = probs.numpy().squeeze(0)    # probs as numpy array
     classes = [model.idx_to_class[i] for i in idxs]
-    
+
     # Print predicted class name
-    print(cat_to_name[classes[0]] +     " : " + str(probs[0]))
-    
+    print(cat_to_name[classes[0]] + " : " + str(probs[0]))
+
     return list(probs), list(classes)
 
 
@@ -204,7 +207,7 @@ def show_probs(img_path, model, cat_to_name):
     """
     Show image and its probabilities.
 
-    Args: 
+    Args:
         img_path: image directory
         model: model used for prediction.
         cat_to_name: Categories to name of the classes.
@@ -213,11 +216,11 @@ def show_probs(img_path, model, cat_to_name):
     img = Image.open(img_path)
     np_img = process_image(img)
     tensor_data = torch.tensor(np_img)
-    
+
     # Prediction
     probs, classes = predict(img_path, model, cat_to_name, 5)
     names = [cat_to_name[c] for c in classes]
-    
+
     # Plots
     fig, axs = plt.subplots(2, 1, figsize=(5, 10))
     axs[0].set_ticks=[]
@@ -234,7 +237,7 @@ if __name__ == "__main__":
         model_arch = sys.argv[1]
     else:
         model_arch = 'best' # loads best architecture tested
-    
+
     # Load trained Models - TOP 3 Architectures
     if 'resnet' in model_arch.lower():
         model = load_model('checkpoint_ResNet_152.pth')
@@ -242,11 +245,11 @@ if __name__ == "__main__":
         model = load_model('checkpoint_VGG_19.pth')
     else: # default model
         model = load_model('checkpoint_DenseNet_161.pth') # Best model
-    
+
     # Load categories names
     cat_to_name = load_cat_to_name('cat_to_name.json')
 
-    # Print predictions of 'test.jpg' Image    
+    # Print predictions of 'test.jpg' Image
     print(predict('test.jpg', model, cat_to_name, 5))
 
     # Show results
