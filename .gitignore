@@ -3,3 +3,9 @@
 *.zip
 *.db
 *.pth
+Kaggle Competition/checkpoint_DenseNet_161.7z.002
+Kaggle Competition/checkpoint_DenseNet_161.7z.001
+Kaggle Competition/cat_to_name.json
+*.pyc
+Kaggle Competition/.ipynb_checkpoints/predict-checkpoint.py
+Kaggle Competition/.ipynb_checkpoints/Competition-checkpoint.ipynb
